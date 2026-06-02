@@ -28,6 +28,45 @@ sudo apt install curl jq openssl python3 python3-yaml
 # MacOS
 brew install jq openssl python yq
 ```
+
+🚀 Quick Start
+Clone the repository:
+
+Bash
+```
+git clone https://github.com/meirlazar/ISPY_API_SCRIPT.git
+cd ISPY_API_SCRIPT
+```
+Setup your environment:
+Place your latest Agent DVR swagger.yaml inside the DATA/ directory or use the modified or original that I have included.
+
+Configure the target host:
+Edit the top of ISPY_API.sh and point it to your local ISPY/Agent DVR server and port (example: 10.10.2.7:8090)
+
+Bash
+```
+TARGET_HOST="x.x.x.x:8090" # your ip or hostname and port running the agentdvr service 
+```
+Launch the Explorer:
+
+Bash
+```
+chmod +x ISPY_API.sh
+./ISPY_API.sh
+```
+
+📖 How to Use
+Create Credentials (Optional): Press 2 from the Main Menu to stash your username and password securely. The script handles the Basic Auth base64 encoding at runtime.
+
+Search Endpoints: Press 1 to launch the wizard. You can type * (or Enter) to see everything, or filter by keywords like record or ptz.
+
+Configure Parameters: The script will list all parameters for the chosen endpoint. Select a number to set its value.
+
+Execute: Press E (or Enter) to run. You will be prompted on how you want to view or export the data.
+
+🤝 Contributing
+Pull requests are welcome. For major structural changes, please open an issue first to discuss what you would like to change.
+
 ### Disclaimer: This is an unofficial project for Ispy aka Agent DVR. 
 I have no affilliation with Agent DVR whatsoever.
 This was an independent project that I developed out of need for a Menu-driven API interface for Agent DVR and a love for BASH scripting.
