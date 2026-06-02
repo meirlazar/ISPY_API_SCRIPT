@@ -1,0 +1,3315 @@
+---
+swagger: "2.0"
+info:
+  description: "This is the full local API for Agent DVR.  You can find out more about\
+    \ AgentDVR at [https://www.ispyconnect.com](https://www.ispyconnect.com)\
+    \ This interface uses the default API endpoint of http://192.168.1.21:8090. You will need Agent DVR installed and running to use it. 
+    \ Many of the commands below take an Object ID and an Object Type ID.
+    \ The Object ID is displayed in Agent's UI when you edit the device at the top left. 
+    \ For example if it says 1: Home Cam then your Object ID is 1. The Object Type ID is 1 for Microphones and 2 for cameras.
+    \ You can also provide a group parameter instead of object id and type id 
+    \ - this will then apply the command to all devices that are in that group (on the General tab when you edit the device).
+    \ Some commands can be called with neither id or group and will then apply to every device on the system."
+  title: 'Agent DVR'
+  version: "7.5.0.0"
+  termsOfService: "https://www.ispyconnect.com/terms.aspx"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8090"
+basePath: "/"
+consumes:
+    - "application/json"
+definitions:
+    Alert:
+        properties:
+            ot:
+                type: integer
+            oid:
+                type: integer
+            reason:
+                type: string
+            msg:
+                type: string
+            time:
+                type: string
+            id:
+                type: string
+            read:
+                type: boolean
+            tags:
+                type: string
+    AlertsResponse:
+        properties:
+            alerts:
+                items:
+                    $ref: '#/definitions/Alert'
+                type: array
+    Event:
+        properties:
+            Ago:
+                type: integer
+            Ident:
+                type: string
+            Type:
+                type: string
+paths:
+    /alerts.json:
+        get:
+            summary: Returns collection of the current alerts
+            operationId: alerts.json
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Returns collection of the current alerts
+                    schema:
+                        $ref: '#/definitions/AlertsResponse'
+            tags: 
+            - Alerts
+    /audio.mp3:
+        get:
+            summary: Returns live audio from the specified microphone in mp3 format
+            operationId: audio.mp3
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            produces:
+                - audio/mpeg
+            responses:
+                "200":
+                    description: Returns live audio from the specified microphone in mp3 format
+            tags: 
+            - Audio
+    /audio.ogg:
+        get:
+            summary: Returns live audio from the specified microphone in ogg format
+            operationId: audio.ogg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            produces:
+                - application/ogg
+            responses:
+                "200":
+                    description: Returns live audio from the specified microphone in ogg format
+            tags: 
+            - Audio
+    /command/addfolder:
+        get:
+            summary: Add existing files from the devices folder to the database
+            operationId: /command/addfolder
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Copy files into the devices folder (available via the storage tab) and then call this command to scan the folder and add the recordings to the database so they are available in the UI. Agent will generate missing data like thumbnails and duration. v5.5.5.0+
+            tags: 
+            - Commands    
+    /command/addrecording:
+        get:
+            summary: Add an existing recording to a device
+            operationId: /command/addrecording
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Local path to the file
+              in: query
+              name: path
+              required: true
+              type: string
+            - description: Target filename. Will generate a filename if not specified
+              in: query
+              name: name
+              required: false
+              type: string
+            - description: Timestamp in UTC javascript ticks. Will use file creation time if not specified
+              in: query
+              name: timestamp
+              required: false
+              type: integer
+            - description: Convert the file to mp4 (or mp3 if audio) (false)
+              in: query
+              name: convert
+              required: false
+              type: boolean
+            - description: Move the file (false)
+              in: query
+              name: move
+              required: false
+              type: boolean
+            - description: Tag the recording in the database (csv)
+              in: query
+              name: tags
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: use the optional fields to customise the data
+            tags: 
+            - Commands    
+    /command/alert:
+        get:
+            summary: Trigger alert on the device.
+            operationId: /command/alert
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Tag (will tag be stored with any associated recording)
+              in: query
+              name: tag
+              required: false
+              type: string
+            - description: AIJSON - any JSON you want passed onto other alert based actions. The presence of AIJSON will also tag the recording and alert as being AI generated.
+              in: query
+              name: aijson
+              required: false
+              type: string
+            - description: Message - any human readable message you want passed onto other alert based actions
+              in: query
+              name: message
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: alert
+            tags: 
+            - Commands
+    /command/alertOff:
+        get:
+            summary: Turn alerts off for the device.
+            operationId: /command/alertOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn alerts off for the device.
+            tags: 
+            - Commands
+    /command/alertOn:
+        get:
+            summary: Turn alerts on for the device.
+            operationId: /command/alertOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn alerts on for the device.
+            tags: 
+            - Commands
+    /command/allOff:
+        get:
+            summary: allOff
+            operationId: /command/allOff
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: allOff
+            tags: 
+            - Commands
+    /command/allOn:
+        get:
+            summary: allOn
+            operationId: /command/allOn
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: allOn
+            tags: 
+            - Commands
+    /command/appendtimestamp:
+        get:
+            summary: Appends text to the devices default timestamp
+            operationId: /command/appendtimestamp
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: text to append
+              in: query
+              name: text
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: alert
+            tags: 
+            - Commands
+    /command/applySchedule:
+        get:
+            summary: Apply schedule to all devices.
+            operationId: /command/applySchedule
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Apply schedule to all devices.
+            tags: 
+            - Commands
+    /command/applyScheduleToDevice:
+        get:
+            summary: Apply schedule to device.
+            operationId: /command/applyScheduleToDevice
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Apply schedule to device.
+            tags: 
+            - Commands
+    /command/arm:
+        get:
+            summary: Arm the system.
+            operationId: /command/arm
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Arm the system.
+            tags: 
+            - Commands
+    /command/armgroups:
+        get:
+            summary: Arm system and groups of devices (enable alerts)
+            operationId: /command/armGroups
+            parameters:
+            - description: group names (csv)
+              in: query
+              name: groups
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Arm the system and enable alerts on groups of devices
+            tags: 
+            - Commands
+    /command/disarmgroups:
+        get:
+            summary: Disarm groups of devices (disable alerts)
+            operationId: /command/disarmGroups
+            parameters:
+            - description: group names (csv)
+              in: query
+              name: groups
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Disarm the system and enable alerts on groups of devices
+            tags: 
+            - Commands
+    /command/armProfile:
+        get:
+            summary: Arm the system and apply the specified profile.
+            operationId: /command/armprofile
+            parameters:
+            - description: profile index
+              in: query
+              name: ind
+              required: true
+              type: integer
+            - description: Optionally disarm after a delay (minutes)
+              in: query
+              name: disarmdelay
+              required: false
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Armed the system and applied the specified profile.
+            tags: 
+            - Commands
+    /command/disarmProfile:
+        get:
+            summary: Disarm the system and apply the specified profile.
+            operationId: /command/disarmProfile
+            parameters:
+            - description: profile index
+              in: query
+              name: ind
+              required: true
+              type: integer
+            - description: Optionally arm the system after a delay (minutes)
+              in: query
+              name: armdelay
+              required: false
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Disarmed and applied the specified profile.
+            tags: 
+            - Commands
+    /command/blockExternal:
+        get:
+            summary: Block external access to the system.
+            operationId: /command/blockExternal
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Block external access to the system.
+            tags: 
+            - Commands
+    /command/checkRemote:
+        get:
+            summary: Check the status of the remote (web) connection
+            operationId: /command/checkRemote
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: returns json, status online or offline. v6.6.8.0+
+            tags: 
+            - Commands
+    /command/cloudPhotosOff:
+        get:
+            summary: Turn cloud photos off for the device.
+            operationId: /command/cloudPhotosOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn cloud photos off for the device.
+            tags: 
+            - Commands
+    /command/cloudPhotosOn:
+        get:
+            summary: Turn cloud photos on for the device.
+            operationId: /command/cloudPhotosOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn cloud photos on for the device.
+            tags: 
+            - Commands
+    /command/cloudRecordingsOff:
+        get:
+            summary: Turn cloud recordings off for the device.
+            operationId: /command/cloudRecordingsOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn cloud recordings off for the device.
+            tags: 
+            - Commands
+    /command/cloudRecordingsOn:
+        get:
+            summary: Turn cloud recordings on for the device.
+            operationId: /command/cloudRecordingsOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn cloud recordings on for the device.
+            tags: 
+            - Commands
+    /command/detect:
+        get:
+            summary: Trigger detection for the device.
+            operationId: /command/detect
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger detection for the device.
+            tags: 
+            - Commands
+    /command/disarm:
+        get:
+            summary: Disarm the system.
+            operationId: /command/disarm
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Disarm the system.
+            tags: 
+            - Commands
+    /command/facedetecton:
+        get:
+            summary: Turn facial recognition on
+            operationId: /command/faceDetectOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn facial recognition on for the device.
+            tags: 
+            - Commands
+    /command/facedetectoff:
+        get:
+            summary: Turn facial recognition off
+            operationId: /command/faceDetectOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn facial recognition off for the device.
+            tags: 
+            - Commands
+    /command/ftpFrame:
+        get:
+            summary: Send a live frame via FTP.
+            operationId: /command/ftpFrame
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Send a live frame via FTP.
+            tags: 
+            - Commands
+    /command/ftpPhotosOff:
+        get:
+            summary: Turn FTP photos off for the device.
+            operationId: /command/ftpPhotosOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn FTP photos off for the device.
+            tags: 
+            - Commands
+    /command/ftpPhotosOn:
+        get:
+            summary: Turn FTP photos on for the device.
+            operationId: /command/ftpPhotosOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn FTP photos on for the device.
+            tags: 
+            - Commands
+    /command/ftpRecordingsOff:
+        get:
+            summary: Turn FTP recordings off for the device.
+            operationId: /command/ftpRecordingsOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn FTP recordings off for the device.
+            tags: 
+            - Commands
+    /command/ftpRecordingsOn:
+        get:
+            summary: Turn FTP recordings on for the device.
+            operationId: /command/ftpRecordingsOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn FTP recordings on for the device.
+            tags: 
+            - Commands
+    /command/getObject:
+        get:
+            summary: Get object by ID.
+            operationId: /command/getObject
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Get object by ID.
+            tags: 
+            - Commands
+    /command/getObjects:
+        get:
+            summary: getObjects
+            operationId: /command/getObjects
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: getObjects
+            tags: 
+            - Commands
+    /command/getProfiles:
+        get:
+            summary: getProfiles
+            operationId: /command/getProfiles
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: getProfiles
+            tags: 
+            - Commands
+    /command/getStatus:
+        get:
+            summary: getStatus
+            operationId: /command/getStatus
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: getStatus
+            tags: 
+            - Commands
+    /command/getSystemStats:
+        get:
+            summary: Return the system usage stats
+            operationId: /command/getsystemstats
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: cpu/ memory and disk space
+            tags: 
+            - Commands
+    /command/lpron:
+        get:
+            summary: Turn LPR on
+            operationId: /command/lprOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn lpr on for the device.
+            tags: 
+            - Commands
+    /command/lproff:
+        get:
+            summary: Turn lpr off
+            operationId: /command/lprOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn lpr off for the device.
+            tags: 
+            - Commands
+    /command/objectdetecton:
+        get:
+            summary: Turn object recognition on
+            operationId: /command/objectDetectOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn object recognition on for the device.
+            tags: 
+            - Commands
+    /command/objectdetectoff:
+        get:
+            summary: Turn object recognition off
+            operationId: /command/objectDetectOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn object recognition off for the device.
+            tags: 
+            - Commands
+    /command/ping:
+        get:
+            summary: ping
+            operationId: /command/ping
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: ping
+            tags: 
+            - Commands
+    /command/ptzscheduleon:
+        get:
+            summary: enable the ptz scheduler or enable a specific ptz schedule entry (5.9.4.0+)
+            operationId: /command/ptzscheduleon
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Identifier of the PTZ Schedule entry (from the copy button on the PTZ Schedule list in the UI)
+              in: query
+              name: ident
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Enables the PTZ Scheduler or a specific entry
+            tags: 
+            - Commands
+    /command/ptzscheduleoff:
+        get:
+            summary: disable the ptz scheduler or disable a specific ptz schedule entry (5.9.4.0+)
+            operationId: /command/ptzscheduleoff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Identifier of the PTZ Schedule entry (from the copy button on the PTZ Schedule list in the UI)
+              in: query
+              name: ident
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Disables the PTZ Scheduler or a specific entry
+            tags: 
+            - Commands
+    /command/record:
+        get:
+            summary: Start recording for the device.
+            operationId: /command/record
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Start recording for the device.
+            tags: 
+            - Commands
+    /command/recordRestart:
+        get:
+            summary: Restart recording for the device.
+            operationId: /command/recordRestart
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Restarted recording for the device.
+            tags: 
+            - Commands
+    /command/setAIFind:
+        get:
+            summary: "Set the object list you want the AI model to look for, for example: person,car"
+            operationId: /command/setAIFind
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Object List
+              in: query
+              name: objects
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Set the find list
+            tags: 
+            - Commands
+    /command/setAIModel:
+        get:
+            summary: "Set the AI model to use for object recognition. Models are used in the endpoints for the AI server. To use the default (/v1/vision/detection) pass in the name default. Otherwise the model url will use the format /v1/vision/custom/name"
+            operationId: /command/setAIModel
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Model Name
+              in: query
+              name: name
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Set the AI model for the device.
+            tags: 
+            - Commands
+    /command/setInterval:
+        get:
+            summary: "Set the interval for the specified field"
+            operationId: /command/setInterval
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: "Setting to modify. Options are: Cameras: alerts, scene, detector, face, ftp, object, askai, photos. Microphones: detector, alerts"
+              in: query
+              name: type
+              required: true
+              type: string
+            - description: New value
+              in: query
+              name: value
+              required: true
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Set the specified interval on the device.
+            tags: 
+            - Commands
+    /command/setSensitivity:
+        get:
+            summary: Set the motion detector sensitivity on the selected device
+            operationId: /command/setSensitivity
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Minimum (0-100)
+              in: query
+              name: min
+              required: false
+              type: integer
+            - description: Maximum (0-100)
+              in: query
+              name: max
+              required: false
+              type: integer
+            - description: Gain Multiplier (0-100) 
+              in: query
+              name: gain
+              required: false
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Set the sensitivity for the device
+            tags: 
+            - Commands
+    /command/soundon:
+        get:
+            summary: Turn sound recognition on
+            operationId: /command/soundOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn sound recognition on for the device.
+            tags: 
+            - Commands
+    /command/soundoff:
+        get:
+            summary: Turn sound recognition off
+            operationId: /command/soundOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn sound recognition off for the device.
+            tags: 
+            - Commands
+    /command/settimestamp:
+        get:
+            summary: Change the timestamp display on the camera
+            operationId: /command/settimestamp
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Text
+              in: query
+              name: text
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Change the timestamp display on the camera
+            tags: 
+            - Commands
+    /command/start-rtmp:
+        get:
+            summary: Start RTMP streaming a device
+            operationId: /command/start-rtmp
+            parameters:
+            - description: Identifier of the RTMP server (shown in the RTMP servers list in server settings)
+              in: query
+              name: ident
+              required: false
+              type: string
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Starts streaming the device to the RTMP server
+            tags: 
+            - Commands
+    /command/start-rtmp-view:
+        get:
+            summary: Start RTMP streaming a configured view
+            operationId: /command/start-rtmp-view
+            parameters:
+            - description: Identifier of the RTMP server (shown in the RTMP servers list in server settings)
+              in: query
+              name: ident
+              required: true
+              type: string
+            - description: View index
+              in: query
+              name: ind
+              required: true
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Starts streaming the view to the RTMP server
+            tags: 
+            - Commands
+    /command/stop-rtmp:
+        get:
+            summary: Stop RTMP streaming a device
+            operationId: /command/stop-rtmp
+            parameters:
+            - description: Identifier of the RTMP server (shown in the RTMP servers list in server settings)
+              in: query
+              name: ident
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Stops streaming to the RTMP server
+            tags: 
+            - Commands
+    /q/tagrecording:
+        get:
+            summary: Tag a previous or current recording. Omit fn parameter to tag current recording.
+            operationId: /command/tagrecording
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Text
+              in: query
+              name: tag
+              required: true
+              type: string
+            - description: Filename (2021-01-19_12-22-55_125.jpg)
+              in: query
+              name: fn
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Tag the current live recording (v5.0.3.0+). Can also tag a previous recording by providing a filename (v6.2.8.0+)
+            tags: 
+            - Commands
+    /q/untagrecording:
+        get:
+            summary: Remove a tag from a recording
+            operationId: /command/untagrecording
+            parameters:
+            - description: Text
+              in: query
+              name: tag
+              required: true
+              type: string
+            - description: Filename (2021-01-19_12-22-55_125.jpg)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Remove the tag from the specified recording (v6.2.8.0+)
+            tags: 
+            - Commands
+    /command/triggerLPR:
+        get:
+            summary: Trigger LPR recognition for the device.
+            operationId: /command/triggerLPR
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger LPR recognition for the device.
+            tags: 
+            - Commands
+    /command/triggerFace:
+        get:
+            summary: Trigger facial recognition for the device.
+            operationId: /command/triggerFace
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger facial recognition for the device.
+            tags: 
+            - Commands
+    /command/triggerObject:
+        get:
+            summary: Trigger object recognition for the device
+            operationId: /command/triggerObject
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger object recognition for the device.
+            tags: 
+            - Commands
+    /command/triggerScene:
+        get:
+            summary: Trigger scene recognition for the device
+            operationId: /command/triggerScene
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger scene recognition for the device.
+            tags: 
+            - Commands
+    /command/triggerAskAI:
+        get:
+            summary: Trigger ask AI for the device
+            operationId: /command/triggerAskAI
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger ask AI for the device.
+            tags: 
+            - Commands
+    /command/triggerTask:
+        get:
+            summary: Trigger a task on the device
+            operationId: /command/triggerTask
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Task
+              in: query
+              name: task
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger a task on the device
+            tags: 
+            - Commands
+    /command/triggerRecord:
+        get:
+            summary: Trigger recording for the device. Recording continues until Trigger Timeout is reached (on the recording tab of the device). Timeout is reset with each call.
+            operationId: /command/triggerRecord
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Trigger temporary recording for the device.
+            tags: 
+            - Commands
+    /command/recordStop:
+        get:
+            summary: Stop recording for the device.
+            operationId: /command/recordStop
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Stop recording for the device.
+            tags: 
+            - Commands
+    /command/recordingOff:
+        get:
+            summary: Turn recording off for the device.
+            operationId: /command/recordingOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn recording off for the device.
+            tags: 
+            - Commands
+    /command/recordOnAlertOn:
+        get:
+            summary: Turn record on alert on for the device.
+            operationId: /command/recordOnAlertOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn record on alert on for the device.
+            tags: 
+            - Commands
+    /command/recordOnDetectOn:
+        get:
+            summary: Turn record on detection on for the device.
+            operationId: /command/recordOnDetectOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn record on detection on for the device.
+            tags: 
+            - Commands
+    /command/reloadConfig:
+        get:
+            summary: reloadConfig
+            operationId: /command/reloadConfig
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: reloadConfig
+            tags: 
+            - Commands
+    /command/reloadObjects:
+        get:
+            summary: reloadObjects
+            operationId: /command/reloadObjects
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: reloadObjects
+            tags: 
+            - Commands
+    /command/restart:
+        get:
+            summary: restart
+            operationId: /command/restart
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: restart
+            tags: 
+            - Commands
+    /command/rtmpStop:
+        get:
+            summary: rtmpStop
+            operationId: /command/rtmpStop
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: rtmpStop
+            tags: 
+            - Commands
+    /command/runStorageMgmt:
+        get:
+            summary: Run storage management.
+            operationId: /command/runStorageMgmt
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Run storage management.
+            tags: 
+            - Commands
+    /command/saveLocalOff:
+        get:
+            summary: Turn save local off for the device.
+            operationId: /command/saveLocalOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn save local off for the device.
+            tags: 
+            - Commands
+    /command/saveLocalOn:
+        get:
+            summary: Turn save local on for the device.
+            operationId: /command/saveLocalOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn save local on for the device.
+            tags: 
+            - Commands
+    /command/scheduleOff:
+        get:
+            summary: Turn schedule off for the device.
+            operationId: /command/scheduleOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn schedule off for the device.
+            tags: 
+            - Commands
+    /command/scheduleOn:
+        get:
+            summary: Turn schedule on for the device.
+            operationId: /command/scheduleOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Turn schedule on for the device.
+            tags: 
+            - Commands
+    /command/setProfile:
+        get:
+            summary: Apply the specified profile with an index.
+            operationId: /command/setProfile
+            parameters:
+            - description: Index (0=Home, 1=Away, 2=Night)
+              enum:
+              - 0
+              - 1
+              - 2
+              in: query
+              name: ind
+              required: true
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Apply the specified profile with an index.
+            tags: 
+            - Commands
+    /command/snapshot:
+        get:
+            summary: Take a photo on a device
+            operationId: /command/snapshot
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Took a photo
+            tags: 
+            - Commands
+    /command/stopCloudUploads:
+        get:
+            summary: stopCloudUploads
+            operationId: /command/stopCloudUploads
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: stopCloudUploads
+            tags: 
+            - Commands
+    /command/switchOff:
+        get:
+            summary: Switch off the device.
+            operationId: /command/switchOff
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Switch off the device.
+            tags: 
+            - Commands
+    /command/switchOn:
+        get:
+            summary: Switch on the device.
+            operationId: /command/switchOn
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Switch on the device.
+            tags: 
+            - Commands
+    /command/unblockExternal:
+        get:
+            summary: Unblock external access to the system.
+            operationId: /command/unblockExternal
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Unblock external access to the system.
+            tags: 
+            - Commands
+    /command/actionon:
+        get:
+            summary: Switches an action on
+            operationId: /command/actionon
+            parameters:
+            - description: ID (from the Action configuration in the UI)
+              in: query
+              name: ID
+              required: false
+              type: string
+            - description: Name (name of the action in the UI) - create multiple actions with the same name across devices to run groups of actions.
+              in: query
+              name: name
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Switches an action on
+            tags: 
+            - Commands
+    /command/actionoff:
+        get:
+            summary: Switches an action off
+            operationId: /command/actionoff
+            parameters:
+            - description: ID (from the Action configuration in the UI)
+              in: query
+              name: ID
+              required: false
+              type: string
+            - description: Name (name of the action in the UI) - create multiple actions with the same name across devices to run groups of actions.
+              in: query
+              name: name
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Switches an action off
+            tags: 
+            - Commands
+    /command/actionrun:
+        get:
+            summary:  Executes an action (bypasses filtering)
+            operationId: /command/actionrun
+            parameters:
+            - description: ID (from the Action configuration in the UI)
+              in: query
+              name: ID
+              required: false
+              type: string
+            - description: Name (name of the action in the UI) - create multiple actions with the same name across devices to run groups of actions.
+              in: query
+              name: name
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Executes an action
+            tags: 
+            - Commands      
+    /command/addCamera:
+        get:
+            summary:  Add an IP camera
+            operationId: /command/addCamera
+            parameters:
+            - description: id of camera (optional - will modify if provided (5.1.3.0+))
+              in: query
+              name: oid
+              required: false
+              type: int
+            - description: Object TypeID (=2 for camera)
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: name of camera
+              in: query
+              name: name
+              required: false
+              type: string
+            - description: URL for the sub stream video feed
+              in: query
+              name: substream
+              required: false
+              type: string
+            - description: URL for the record stream video feed
+              in: query
+              name: mainstream
+              required: false
+              type: string
+            - description: Camera username
+              in: query
+              name: username
+              required: false
+              type: string
+            - description: Camera password
+              in: query
+              name: password
+              required: false
+              type: string
+            - description: alerts enabled (1 or 0)
+              in: query
+              name: alerts
+              required: false
+              type: int
+            - description: recording enabled (1 or 0)
+              in: query
+              name: record
+              required: false
+              type: int
+            - description: resize enabled (1 or 0)
+              in: query
+              name: resize
+              required: false
+              type: int
+            - description: raw record enabled (1 or 0)
+              in: query
+              name: raw
+              required: false
+              type: int
+            - description: display FPS limit
+              in: query
+              name: fps
+              required: false
+              type: int
+            - description: record FPS limit
+              in: query
+              name: recfps
+              required: false
+              type: int
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Adds a camera
+            tags: 
+            - Commands
+    /command/addOnvif:
+        get:
+            summary:  Add an ONVIF camera
+            operationId: /command/addOnvif
+            parameters:
+            - description: URL for the ONVIF device management endpoint
+              in: query
+              name: uri
+              required: true
+              type: string
+            - description: name of camera
+              in: query
+              name: name
+              required: false
+              type: string
+            - description: Profile index for the live stream (0)
+              in: query
+              name: substream
+              required: false
+              type: int
+            - description: Profile index for the record stream (1)
+              in: query
+              name: mainstream
+              required: false
+              type: int
+            - description: Camera username
+              in: query
+              name: username
+              required: false
+              type: string
+            - description: Camera password
+              in: query
+              name: password
+              required: false
+              type: string
+            - description: alerts enabled (1 or 0)
+              in: query
+              name: alerts
+              required: false
+              type: int
+            - description: recording enabled (1 or 0)
+              in: query
+              name: record
+              required: false
+              type: int
+            - description: resize enabled (1 or 0)
+              in: query
+              name: resize
+              required: false
+              type: int
+            - description: raw record enabled (1 or 0)
+              in: query
+              name: raw
+              required: false
+              type: int
+            - description: display FPS limit
+              in: query
+              name: fps
+              required: false
+              type: int
+            - description: record FPS limit
+              in: query
+              name: recfps
+              required: false
+              type: int
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Adds a camera
+            tags: 
+            - Commands
+    /command/switchDetector:
+        get:
+            summary: Switch the detector for the device on or off.
+            operationId: /command/switchDetector
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: On or Off
+              enum:
+              - true
+              - false
+              in: query
+              name: on
+              required: true
+              type: boolean
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Switches the detector on or off
+            tags: 
+            - Commands           
+    /command/purge:
+        get:
+            summary: 'Purge the control''s folder of all content (4.7.7.0+)'
+            operationId: /command/purge
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Purges all recordings (deletes) for the control
+            tags: 
+            - Commands
+    /fileThumb.jpg:
+        get:
+            summary: Returns a thumbnail image for the specified recording and filename
+            operationId: fileThumb.jpg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            - description: Filename (3_2021-01-19_12-22-55_125.jpg) (use ..._large.jpg for a large version)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Returns a thumbnail image for the specified recording and filename
+            tags: 
+            - Media
+    /grab.jpg:
+        get:
+            summary: Returns a still image for the specified object(s)
+            operationId: grab.jpg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object IDs (1,2,3,4)
+              in: query
+              name: oids
+              required: false
+              type: string
+            - description: Background Color - RGB format (255,0,0)
+              in: query
+              name: backColor
+              required: false
+              type: string
+            - description: Maintain Aspect Ratio
+              in: query
+              name: maintainAR
+              required: false
+              type: boolean
+            - description: Size (320x240)
+              in: query
+              name: size
+              required: false
+              type: string
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Returns a still image for the specified object(s)
+            tags: 
+            - Media
+    /grabImage.jpg:
+        get:
+            summary: Returns a full size image for the specified object and filename
+            operationId: grabImage.jpg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            - description: Filename (2021-01-19_12-22-55_125.jpg)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Returns a full size image for the specified object and filename
+            tags: 
+            - Media
+    /grabThumb.jpg:
+        get:
+            summary: Returns a thumbnail image for the specified object and filename
+            operationId: grabThumb.jpg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            - description: Filename (2021-01-19_12-22-55_125.jpg)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Returns a thumbnail image for the specified object and filename
+            tags: 
+            - Media
+    /photo.jpg:
+        get:
+            summary: Returns a photo frame for the specified camera (5.4.6.0+)
+            operationId: photo.jpg
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Proxies the image from the cameras photo URL endpoint. Returns the live frame from the camera if not available.
+            tags: 
+            - Media
+    /ptz.cgi:
+        get:
+            summary: PTZ controls
+            operationId: ptz.cgi
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            - description: Command (the url encoded portion in the extended commands options from the PTZ2.xml)
+              in: query
+              name: cmd
+              required: false
+              type: string
+            - description: Direction (0 for center, 1 = left, 2=up left, 3 = up, 4 = up right, 5 = right, 6 = down right, 7 = down, 8 = down left, 9 = zoom in, 10 = zoom out, 11 = stop)
+              enum:
+              - 0
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+              - 8
+              - 9
+              - 10
+              - 11
+              in: query
+              name: dir
+              required: false
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: OK
+            tags: 
+            - PTZ
+    /q/getCameraGrabs:
+        get:
+            summary: Returns JSON of the camera's photos
+            operationId: /q/getCameraGrabs
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: End Date
+              in: query
+              name: oid
+              required: false
+              type: integer
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Camera grab JSON - If you receive 800 grabs you will need to make another call to getcameragrabs passing in enddate=x where x is the last received timestamp in the array to retrieve the next 800
+            tags: 
+            - Query
+    /q/queryLevel:
+        get:
+            summary: Returns the detected motion or sound level of the device
+            operationId: /q/queryLevel
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                    description: Audio level where 1 is max and 0 is min
+            tags: 
+            - Query
+    /q/getSessionCount:
+        get:
+            summary: Returns the number of active sessions.
+            operationId: /q/getSessionCount
+            produces:
+                - application/json
+            responses:
+                "200":
+                  description: OK
+            tags: 
+            - Queries
+    /q/getStreamingStatus:
+        get:
+            summary: Get a JSON list of configured RTMP servers (with status). This provides an ident field you use in subsequent requests.
+            operationId: /q/getStreamingStatus
+            produces:
+                - application/json
+            responses:
+                "200":
+                  description: Get a JSON list of configured RTMP servers (with status). This provides an ident field you use in subsequent requests.
+            tags: 
+            - Queries
+    /q/getGraph:
+        get:
+            summary: "Get a JSON description of the file with a motion graph array and tag information (including timestamps)"
+            operationId: /q/getGraph
+            parameters:
+            - description: Filename (from getEvents call)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - application/json
+            responses:
+                "200":
+                  description: Return json array
+            tags: 
+            - Query
+    /q/getEvents:
+        get:
+            summary: "Get a JSON list of recordings for the server or specific device. If you receive 400 events you will need to make another call to getevents passing in enddate=x where x is the last received timestamp in the array to retrieve the next 400. Pass in tag=x to filter the results to recordings tagged with x"
+            operationId: /q/getEvents
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Filter
+              in: query
+              name: tag
+              required: false
+              type: string
+            - description: Compresses the results using gzip
+              in: query
+              name: compress
+              required: false
+              type: boolean
+            produces:
+                - application/json
+            responses:
+                "200":
+                  description: Return json array
+            tags: 
+            - Query
+    /streamFile.cgi:
+        get:
+            summary: Stream the file to the caller
+            operationId: /streamFile.cgi
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: false
+              type: integer
+            - description: Object TypeID
+              enum:
+              - 1
+              - 2
+              in: query
+              name: ot
+              required: false
+              type: integer
+            - description: Target Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Target Location
+              in: query
+              name: Location
+              required: false
+              type: string
+            - description: Filename (3_2021-01-21_16-34-42_977.mkv)
+              in: query
+              name: fn
+              required: true
+              type: string
+            produces:
+                - video/x-matroska
+                - video/mp4
+            responses:
+                "200":
+                    description: Stream the file to the caller. The filename is from the "fn" property in the json from the getevents call. It is up to the calling application to provide playback facility.
+            tags: 
+            - Streams
+    /video.gif:
+        get:
+            summary: Generate an animated gif from the live camera stream
+            operationId: video.gif
+            parameters:
+            - description: Object ID
+              in: query
+              name: oid
+              required: true
+              type: integer
+            - description: Frame rate (FPS)
+              in: query
+              name: framerate
+              required: true
+              type: integer
+            - description: Seconds
+              in: query
+              name: secs
+              required: true
+              type: integer
+            - description: Size (640x480)
+              in: query
+              name: size
+              required: true
+              type: string
+            produces:
+                - image/gif
+            responses:
+                "200":
+                    description: Generate an animated gif from the live camera stream
+            tags: 
+            - Media
+    /video.mjpg:
+        get:
+            description: Grid of cameras
+            operationId: video.mjpg
+            parameters:
+            - description: Object IDs (1,2,3,4)
+              in: query
+              name: oids
+              required: false
+              type: string
+            - description: Background Color - RGB format (255,0,0)
+              in: query
+              name: backColor
+              required: false
+              type: string
+            - description: Cycle (Seconds)
+              in: query
+              name: cycle
+              required: false
+              type: integer
+            - description: viewIndex (provide this to display a view from the default account instead of a set of cameras - 5.6.4.0+)
+              in: query
+              name: viewIndex
+              required: false
+              type: integer
+            - description: Group
+              in: query
+              name: group
+              required: false
+              type: string
+            - description: Maintain Aspect Ratio
+              in: query
+              name: maintainAR
+              required: false
+              type: boolean
+            - description: Size (320x240)
+              in: query
+              name: size
+              required: false
+              type: string
+            produces:
+                - image/jpeg
+            responses:
+                "200":
+                    description: Return a grid of cameras in mjpeg form
+            tags: 
+            - Media
+    /video.mp4:
+        get:
+            summary: Returns a grid of cameras in mp4 form (the first camera with audio provides the audio stream)
+            operationId: video.mp4
+            parameters:
+            - description: Object IDs (1,2,3,4)
+              in: query
+              name: oids
+              required: false
+              type: string
+            - description: Background Color - RGB format (255,0,0)
+              in: query
+              name: backColor
+              required: false
+              type: string
+            - description: Size (320x240)
+              in: query
+              name: size
+              required: false
+              type: string
+            - description: viewIndex (provide this to display a view from the default account instead of a set of cameras - 5.6.4.0+)
+              in: query
+              name: viewIndex
+              required: false
+              type: integer
+            produces:
+                - video/mp4
+            responses:
+                "200":
+                    description: Returns a grid of cameras in mp4 form (the first camera with audio provides the audio stream)
+            tags: 
+            - Media
+    /video.webm:
+        get:
+            summary: Returns a grid of cameras in mp4 form (the first camera with audio provides the audio stream)
+            operationId: video.webm
+            parameters:
+            - description: Object IDs (1,2,3,4)
+              in: query
+              name: oids
+              required: false
+              type: string
+            - description: Background Color - RGB format (255,0,0)
+              in: query
+              name: backColor
+              required: false
+              type: string
+            - description: Size (320x240)
+              in: query
+              name: size
+              required: false
+              type: string
+            - description: viewIndex (provide this to display a view from the default account instead of a set of cameras - 5.6.4.0+)
+              in: query
+              name: viewIndex
+              required: false
+              type: integer
+            produces:
+                - video/mp4
+            responses:
+                "200":
+                    description: Returns a grid of cameras in mp4 form (the first camera with audio provides the audio stream)
+            tags: 
+            - Media
+produces:
+    - application/json
+schemes:
+    - http
+externalDocs:
+  description: "Find out more about Agent DVR"
+  url: "https://www.ispyconnect.com/"
