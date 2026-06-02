@@ -45,6 +45,37 @@ function draw_banner() {
     echo -e "╰─────────────────────────────────────────────────────────────────────────────╯${C_DEF}\n"
 }
 
+
+# ==============================================================================
+# DEPENDENCY PRE-FLIGHT CHECKER
+# ==============================================================================
+CheckDependencies() {
+    declare -A DEPS=(
+        ["curl"]="curl"
+        ["jq"]="jq"
+        ["openssl"]="openssl"
+        ["python3"]="python3"
+    )
+
+    local MISSING=()
+
+    for cmd in "${!DEPS[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            MISSING+=("$cmd (Install via: ${DEPS[$cmd]})")
+        fi
+    done
+
+    if [[ ${#MISSING[@]} -gt 0 ]]; then
+        echo -e "\n${C_RED}${C_BLD}!!! MISSING DEPENDENCIES !!!${C_DEF}"
+        echo -e "The following tools are required for this script to function:"
+        for m in "${MISSING[@]}"; do
+            echo -e "  - ${C_YLW}$m${C_DEF}"
+        done
+        echo -e "\nPlease install them and try again.\n"
+        exit 1
+    fi
+}
+
 # ================= SECURITY & VAULT =================
 
 function read_secret() {
@@ -437,4 +468,5 @@ function show_menu() {
     done
 }
 
+CheckDependencies
 show_menu
