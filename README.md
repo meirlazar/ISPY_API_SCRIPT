@@ -1,7 +1,8 @@
 # 🕵️‍♂️ Agent DVR API Explorer & CLI Engine
 **A powerful, interactive Bash terminal UI for navigating, executing, and batching Agent DVR API Commands locally.**
 
-<img width="1197" height="994" alt="image" src="https://github.com/user-attachments/assets/d3d33c0a-3fc1-4b38-875f-0d97ef0d4529" />
+<img width="1190" height="989" alt="image" src="https://github.com/user-attachments/assets/335df4f8-94ae-4f8b-babf-746915847a0f" />
+
 
 ![Bash](https://img.shields.io/badge/Language-Bash-4EAA25?style=for-the-badge&logo=gnu-bash&logoColor=white)
 ![OpenSSL](https://img.shields.io/badge/Vault-AES--256-721412?style=for-the-badge&logo=openssl&logoColor=white)
